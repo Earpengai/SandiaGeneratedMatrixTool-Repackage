@@ -35,7 +35,6 @@ jobs:
             --type dmg \
             --input pack \
             --main-jar "${MAIN_JAR}" \
-            --class-path "lib/*" \
             --main-class "${MAIN_CLASS}" \
             --dest dist \
             --app-version "${APP_VERSION#v}" \
