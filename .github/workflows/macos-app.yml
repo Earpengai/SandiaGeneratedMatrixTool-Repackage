@@ -1,0 +1,50 @@
+name: macOS DMG (jpackage)
+
+on:
+  push:
+    tags: ['v*']     # run when you push a tag like v1.0.0
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    env:
+      APP_NAME: "Sandia Generated Matrix Tool"
+      MAIN_CLASS: "gov.sandia.cognition.generator.matrix.ui.SGMBuilderFrame"
+      MAIN_JAR: "gov-sandia-cognition-generator-matrix.jar"
+      APP_VERSION: ${{ github.ref_name || '0.0.0-SNAPSHOT' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK (for jpackage)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build DMG with jpackage
+        run: |
+          mkdir -p dist
+          ICON_FLAG=""
+          if [ -f "packaging/mac/SGMT.icns" ]; then
+            ICON_FLAG="--icon packaging/mac/SGMT.icns"
+          fi
+
+          jpackage \
+            --name "${APP_NAME}" \
+            --type dmg \
+            --input pack \
+            --main-jar "${MAIN_JAR}" \
+            --class-path "lib/*" \
+            --main-class "${MAIN_CLASS}" \
+            --dest dist \
+            --app-version "${APP_VERSION#v}" \
+            --vendor "Sandia Labs" \
+            --mac-package-identifier "org.sandia.matrices" \
+            $ICON_FLAG
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: dist/*
